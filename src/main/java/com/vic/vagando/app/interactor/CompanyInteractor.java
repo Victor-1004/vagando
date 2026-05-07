@@ -1,0 +1,78 @@
+package com.vic.vagando.app.interactor;
+
+import com.vic.vagando.app.domain.company.Company;
+import com.vic.vagando.app.domain.job.input.CreateCompanyJobInput;
+import com.vic.vagando.app.domain.company.input.UpdateCompanyInput;
+import com.vic.vagando.app.domain.job.Job;
+import com.vic.vagando.app.domain.job.JobSkills;
+import com.vic.vagando.app.domain.job.output.JobOutput;
+import com.vic.vagando.app.exception.BusinessException;
+import com.vic.vagando.app.gateway.AppGateway;
+import com.vic.vagando.app.gateway.CompanyGateway;
+import com.vic.vagando.app.gateway.JobGateway;
+import com.vic.vagando.app.gateway.SkillsGateway;
+import jakarta.transaction.Transactional;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+public class CompanyInteractor {
+    private final CompanyGateway companyGateway;
+    private final AppGateway appGateway;
+    private final JobGateway jobGateway;
+    private final SkillsGateway skillsGateway;
+    public CompanyInteractor(CompanyGateway companyGateway, AppGateway appGateway, JobGateway jobGateway, SkillsGateway skillsGateway) {
+        this.companyGateway = companyGateway;
+        this.appGateway = appGateway;
+        this.jobGateway = jobGateway;
+        this.skillsGateway = skillsGateway;
+    }
+
+    public Company update(UpdateCompanyInput input){
+        if(input.getNome() == null && input.getDescricao() == null){
+            throw new IllegalArgumentException("At least one field must be provided for update");
+        }
+        Company company = getCompany();
+        company.update(input.toDomain());
+        return companyGateway.save(company);
+    }
+
+    @Transactional
+    public JobOutput createJob(CreateCompanyJobInput input){
+        Company company = getCompany();
+        Job job = input.toDomain();
+        job.setCompany(company);
+        job.setCreatedAt(appGateway.getCurrentDateTime());
+        Set<JobSkills> jobSkillsSet = new HashSet<>();
+        for(UUID skillId : input.getSkills()){
+            JobSkills jobSkills = new JobSkills();
+            jobSkills.setJob(job);
+            var skill = skillsGateway.findById(skillId)
+                    .orElseThrow(() -> new BusinessException("Skill with id " + skillId + " not found"));
+            jobSkills.setSkill(skill);
+            jobSkillsSet.add(jobSkills);
+        }
+        job.setSkills(jobSkillsSet);
+        Job savedJob = jobGateway.createJob(job);
+        JobOutput output = new JobOutput();
+        return output.fromDomain(savedJob);
+    }
+
+    public List<JobOutput> getJobs(){
+        Company company = getCompany();
+        List<Job> jobs = jobGateway.getCompanyJobs(company.getId());
+        return jobs.stream().map(job -> {
+            JobOutput output = new JobOutput();
+            return output.fromDomain(job);
+        }).toList();
+    }
+
+    public Company getCompany(){
+        String email = appGateway.getLoggedUserEmail();
+        return companyGateway.findByUserEmail(email).orElseThrow(() -> new RuntimeException("Company not found"));
+    }
+
+
+}
