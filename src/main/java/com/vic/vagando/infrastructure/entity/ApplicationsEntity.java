@@ -5,6 +5,8 @@ import com.vic.vagando.infrastructure.entity.candidate.CandidateEntity;
 import com.vic.vagando.infrastructure.entity.job.JobEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,10 +20,14 @@ public class ApplicationsEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name="job_id", nullable=false)
     private JobEntity job;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name="candidate_id", nullable=false)
     private CandidateEntity candidate;

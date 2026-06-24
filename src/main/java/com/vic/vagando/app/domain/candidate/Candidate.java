@@ -92,7 +92,7 @@ public class Candidate {
         if(updatedData.getResumeUrl() != null){
             this.setResumeUrl(updatedData.getResumeUrl());
         }
-        if(updatedData.getSkills() != null){
+        if(updatedData.getSkills() != null && !updatedData.getSkills().isEmpty()){
             this.setSkills(updatedData.getSkills());
         }
 

@@ -30,7 +30,7 @@ public class JobAdapter implements JobGateway {
 
     @Override
     public Optional<Job> getById(UUID id) {
-        return jobRepository.findById(id).map(JobMapper::toDomain);
+        return jobRepository.findByIdFetchingSkills(id).map(JobMapper::toDomain);
     }
 
     @Override
@@ -52,5 +52,15 @@ public class JobAdapter implements JobGateway {
     @Override
     public PageModel<Job> findJobs(int page, int size) {
         return PageRepositoryMapper.toDomain(jobRepository.find(PageRequest.of(page, size)).map(JobMapper::toDomain));
+    }
+
+    @Override
+    public Optional<Job> findById(UUID id) {
+        return jobRepository.findByIdFetchingSkills(id).map(JobMapper::toDomain);
+    }
+
+    @Override
+    public PageModel<Job> findJobsAppliedByCandidateId(UUID candidateId, int page, int size) {
+        return PageRepositoryMapper.toDomain(jobRepository.findJobsAppliedByCandidateId(candidateId, PageRequest.of(page, size)).map(JobMapper::toDomain));
     }
 }

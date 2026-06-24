@@ -34,7 +34,7 @@ public class CandidateMapper {
 
     public static Candidate toDomain(CandidateEntity entity) {
         Candidate candidate = toDomainWithoutSkills(entity);
-        if(entity != null && entity.getSkills() != null) {
+        if(entity != null && entity.getSkills() != null && !entity.getSkills().isEmpty()) {
             candidate.setSkills(entity.getSkills().stream().map(CandidateMapper::toDomainSkillLink).collect(Collectors.toSet()));
         }
         return candidate;

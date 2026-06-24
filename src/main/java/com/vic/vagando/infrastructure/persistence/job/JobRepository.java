@@ -7,11 +7,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface JobRepository extends JpaRepository<JobEntity, UUID> {
     @Query("SELECT DISTINCT j FROM JobEntity j LEFT JOIN FETCH j.skills sk LEFT JOIN FETCH sk.skill s LEFT JOIN FETCH j.company c WHERE j.company.id = :companyId")
     List<JobEntity> findByCompanyId(UUID companyId);
+
+    @Query("SELECT DISTINCT j FROM JobEntity j LEFT JOIN FETCH j.skills sk LEFT JOIN FETCH sk.skill s LEFT JOIN FETCH j.company c WHERE j.id = :id")
+    Optional<JobEntity> findByIdFetchingSkills(UUID id);
 
     // Versão paginada: fetch só do company (to-one) é seguro com Pageable.
     // skills é coleção -> carrega lazy depois (não dá pra FETCH + paginar no banco).
@@ -26,4 +30,8 @@ public interface JobRepository extends JpaRepository<JobEntity, UUID> {
     @Query(value = "SELECT j FROM JobEntity j LEFT JOIN FETCH j.company c",
             countQuery = "SELECT COUNT(j) FROM JobEntity j")
     Page<JobEntity> find(Pageable pageable);
+
+    @Query(value = "SELECT j FROM JobEntity j WHERE j.id IN (SELECT a.job.id FROM ApplicationsEntity a WHERE a.candidate.id = :candidateId)",
+            countQuery = "SELECT COUNT(j) FROM JobEntity j WHERE j.id IN (SELECT a.job.id FROM ApplicationsEntity a WHERE a.candidate.id = :candidateId)")
+    Page<JobEntity> findJobsAppliedByCandidateId(UUID candidateId, Pageable pageable);
 }

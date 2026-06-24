@@ -4,6 +4,8 @@ package com.vic.vagando.infrastructure.entity.candidate;
 import com.vic.vagando.infrastructure.entity.SkillsEntity;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -15,6 +17,8 @@ public class CandidateSkillsEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "candidate_id", nullable = false)
     private CandidateEntity candidate;

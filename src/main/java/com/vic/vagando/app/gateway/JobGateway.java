@@ -14,4 +14,6 @@ public interface JobGateway {
     PageModel<Job> getCompanyJobs(UUID companyId, int page, int size);
     PageModel<Job> findJobsNotAppliedByCandidateId(UUID candidateId, int page, int size);
     PageModel<Job> findJobs(int page, int size);
+    Optional<Job> findById(UUID id);
+    PageModel<Job> findJobsAppliedByCandidateId(UUID candidateId, int page, int size);
 }

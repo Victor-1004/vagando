@@ -4,11 +4,15 @@ import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.candidate.Candidate;
 import com.vic.vagando.app.domain.candidate.input.UpdateCandidateInput;
 import com.vic.vagando.app.domain.job.Job;
+import com.vic.vagando.app.domain.job.output.JobOutput;
+import com.vic.vagando.app.domain.ouput.CandidateOutput;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
 import com.vic.vagando.app.gateway.AppGateway;
 import com.vic.vagando.app.gateway.CandidateGateway;
 import com.vic.vagando.app.gateway.JobGateway;
+
+import java.util.List;
 
 public class CandidateInteractor{
     private final CandidateGateway candidateGateway;
@@ -21,14 +25,14 @@ public class CandidateInteractor{
         this.jobGateway = jobGateway;
     }
 
-    public Candidate update(UpdateCandidateInput input){
+    public CandidateOutput update(UpdateCandidateInput input){
         if(input.getNome() == null && input.getDescricao() == null){
             throw new BusinessException("At least one field must be provided for update");
         }
         Candidate candidate = getCandidate();
         candidate.update(input.toDomain());
         candidateGateway.saveCandidate(candidate);
-        return candidate;
+        return new CandidateOutput().toOutput(candidate);
     }
 
     public PageModel<Job> find(int page, int size){
@@ -36,6 +40,11 @@ public class CandidateInteractor{
     }
 
     public Candidate getCandidate(){
-        return candidateGateway.findByUserEmail(appGateway.getLoggedUserEmail()).orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+        String email = appGateway.getLoggedUserEmail();
+        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+    }
+
+    public PageModel<JobOutput> findJobsAppliedByCandidateId(int page, int size){
+        return jobGateway.findJobsAppliedByCandidateId(getCandidate().getId(), page, size).map(job -> new JobOutput().fromDomain(job));
     }
 }
