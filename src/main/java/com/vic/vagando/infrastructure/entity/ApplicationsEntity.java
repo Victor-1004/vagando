@@ -6,6 +6,7 @@ import com.vic.vagando.infrastructure.entity.job.JobEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -29,7 +30,8 @@ public class ApplicationsEntity {
     @Column(nullable = false)
     private ApplicationStatus status;
 
-    private Double score;
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal score;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

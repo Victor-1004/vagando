@@ -1,7 +1,8 @@
 package com.vic.vagando.app.interactor;
 
+import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.company.Company;
-import com.vic.vagando.app.domain.job.input.CreateCompanyJobInput;
+import com.vic.vagando.app.domain.job.input.CompanyJobInput;
 import com.vic.vagando.app.domain.company.input.UpdateCompanyInput;
 import com.vic.vagando.app.domain.job.Job;
 import com.vic.vagando.app.domain.job.JobSkills;
@@ -40,7 +41,7 @@ public class CompanyInteractor {
     }
 
     @Transactional
-    public JobOutput createJob(CreateCompanyJobInput input){
+    public JobOutput createJob(CompanyJobInput input){
         Company company = getCompany();
         Job job = input.toDomain();
         job.setCompany(company);
@@ -60,13 +61,10 @@ public class CompanyInteractor {
         return output.fromDomain(savedJob);
     }
 
-    public List<JobOutput> getJobs(){
+    public PageModel<JobOutput> getJobs(int page, int size){
         Company company = getCompany();
-        List<Job> jobs = jobGateway.getCompanyJobs(company.getId());
-        return jobs.stream().map(job -> {
-            JobOutput output = new JobOutput();
-            return output.fromDomain(job);
-        }).toList();
+        PageModel<Job> jobs = jobGateway.getCompanyJobs(company.getId(), page, size);
+        return jobs.map(job -> new JobOutput().fromDomain(job));
     }
 
     public Company getCompany(){

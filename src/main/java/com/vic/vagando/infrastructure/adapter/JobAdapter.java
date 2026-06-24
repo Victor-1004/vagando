@@ -1,13 +1,16 @@
 package com.vic.vagando.infrastructure.adapter;
 
+import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.job.Job;
 import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.gateway.JobGateway;
 import com.vic.vagando.infrastructure.adapter.mapper.JobMapper;
+import com.vic.vagando.infrastructure.adapter.mapper.PageRepositoryMapper;
 import com.vic.vagando.infrastructure.persistence.job.JobRepository;
 import com.vic.vagando.infrastructure.persistence.job.JobSkillsRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,7 +39,18 @@ public class JobAdapter implements JobGateway {
     }
 
     @Override
-    public List<Job> getCompanyJobs(UUID companyId) {
-        return jobRepository.findByCompanyId(companyId).stream().map(JobMapper::toDomain).toList();
+    @Transactional
+    public PageModel<Job> getCompanyJobs(UUID companyId, int page, int size) {
+        return PageRepositoryMapper.toDomain(jobRepository.findByCompanyId(companyId, PageRequest.of(page, size)).map(JobMapper::toDomain));
+    }
+
+    @Override
+    public PageModel<Job> findJobsNotAppliedByCandidateId(UUID candidateId, int page, int size) {
+        return PageRepositoryMapper.toDomain(jobRepository.findJobsNotAppliedByCandidateId(candidateId, PageRequest.of(page, size)).map(JobMapper::toDomain));
+    }
+
+    @Override
+    public PageModel<Job> findJobs(int page, int size) {
+        return PageRepositoryMapper.toDomain(jobRepository.find(PageRequest.of(page, size)).map(JobMapper::toDomain));
     }
 }

@@ -25,4 +25,6 @@ public class CandidateController {
             return ResponseEntity.status(400).build();
         }
     }
+
+
 }

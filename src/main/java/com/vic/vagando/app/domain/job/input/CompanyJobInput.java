@@ -6,7 +6,7 @@ import com.vic.vagando.app.exception.BusinessException;
 import java.util.List;
 import java.util.UUID;
 
-public class CreateCompanyJobInput {
+public class CompanyJobInput {
     private String title;
     private String description;
     private String requirements;
