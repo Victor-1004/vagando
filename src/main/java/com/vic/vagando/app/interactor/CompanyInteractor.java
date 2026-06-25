@@ -2,33 +2,37 @@ package com.vic.vagando.app.interactor;
 
 import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.company.Company;
+import com.vic.vagando.app.domain.filter.ApplicationsCompanyFilter;
 import com.vic.vagando.app.domain.job.input.CompanyJobInput;
 import com.vic.vagando.app.domain.company.input.UpdateCompanyInput;
 import com.vic.vagando.app.domain.job.Job;
 import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.domain.job.output.JobOutput;
+import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
+import com.vic.vagando.app.domain.ouput.CandidateOutput;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
-import com.vic.vagando.app.gateway.AppGateway;
-import com.vic.vagando.app.gateway.CompanyGateway;
-import com.vic.vagando.app.gateway.JobGateway;
-import com.vic.vagando.app.gateway.SkillsGateway;
+import com.vic.vagando.app.gateway.*;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CompanyInteractor {
     private final CompanyGateway companyGateway;
     private final AppGateway appGateway;
     private final JobGateway jobGateway;
     private final SkillsGateway skillsGateway;
-    public CompanyInteractor(CompanyGateway companyGateway, AppGateway appGateway, JobGateway jobGateway, SkillsGateway skillsGateway) {
+    private final ApplicationsGateway applicationsGateway;
+
+    public CompanyInteractor(CompanyGateway companyGateway, AppGateway appGateway, JobGateway jobGateway, SkillsGateway skillsGateway, ApplicationsGateway applicationsGateway) {
         this.companyGateway = companyGateway;
         this.appGateway = appGateway;
         this.jobGateway = jobGateway;
         this.skillsGateway = skillsGateway;
+        this.applicationsGateway = applicationsGateway;
     }
 
     public Company update(UpdateCompanyInput input){
@@ -66,9 +70,38 @@ public class CompanyInteractor {
         return jobs.map(job -> new JobOutput().fromDomain(job));
     }
 
+
     public Company getCompany(){
         String email = appGateway.getLoggedUserEmail();
         return companyGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Company not found"));
     }
 
+    public PageModel<ApplicationsCompanyOutput> getApplicationsToCompanyJobs(ApplicationsCompanyFilter filter, int page, int size){
+        Company company = getCompany();
+        return applicationsGateway.findApplicationsToCompanyJobs(company.getId(), filter != null && filter.getJob() != null ? filter.getJob() : null, filter != null && filter.getStatus() != null ? filter.getStatus().name() : null, page, size)
+                .map(applications -> {
+                    ApplicationsCompanyOutput output = new ApplicationsCompanyOutput();
+                    output.setId(applications.getId());
+                    output.setCreatedAt(applications.getCreatedAt());
+                    output.setStatus(applications.getStatus());
+                    output.setScore(applications.getScore());
+                    JobOutput jobOutput = new JobOutput();
+                    jobOutput.setJobId(applications.getJob().getId());
+                    jobOutput.setTitle(applications.getJob().getTitle());
+                    jobOutput.setSkills(applications.getJob().getSkills().stream().map(js -> {
+                        JobOutput.JobSkillOutput  jobSkillOutput = new JobOutput.JobSkillOutput();
+                        jobSkillOutput.setId(js.getSkill().getId());
+                        jobSkillOutput.setName(js.getSkill().getName());
+                        return jobSkillOutput;
+                    }).collect(Collectors.toSet()));
+                    output.setJob(jobOutput);
+                    CandidateOutput candidateOutput = new CandidateOutput();
+                    candidateOutput.setId(applications.getCandidate().getId());
+                    candidateOutput.setName(applications.getCandidate().getName());
+                    candidateOutput.setResumeUrl(applications.getCandidate().getResumeUrl());
+                    candidateOutput.setEmail(applications.getCandidate().getUser().getEmail());
+                    output.setCandidate(candidateOutput);
+                    return output;
+                });
+    }
 }

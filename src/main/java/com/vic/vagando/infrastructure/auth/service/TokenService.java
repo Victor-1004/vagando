@@ -27,7 +27,7 @@ public class TokenService {
             return JWT.create()
                     .withSubject(user.getEmail())
                     .withIssuer("vagando-api")
-                    .withExpiresAt(LocalDateTime.now().plusMinutes(15).toInstant(ZoneOffset.of("-03:00")))
+                    .withExpiresAt(LocalDateTime.now().plusMinutes(60).toInstant(ZoneOffset.of("-03:00")))
 
                     .sign(algorithm);
         }catch(JWTCreationException e){

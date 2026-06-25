@@ -1,16 +1,26 @@
 package com.vic.vagando.app.domain.job.input;
 
 import com.vic.vagando.app.domain.job.Job;
+import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.exception.BusinessException;
 
 import java.util.List;
 import java.util.UUID;
 
 public class CompanyJobInput {
+    private UUID jobId;
     private String title;
     private String description;
     private String requirements;
     private List<UUID> skills;
+
+    public UUID getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(UUID jobId) {
+        this.jobId = jobId;
+    }
 
     public String getTitle() {
         return title;

@@ -1,5 +1,6 @@
 package com.vic.vagando.infrastructure.auth.controller;
 
+import com.vic.vagando.app.domain.ouput.UserProfileOutput;
 import com.vic.vagando.app.domain.user.Register;
 import com.vic.vagando.app.domain.user.User;
 import com.vic.vagando.app.interactor.UserInteractor;
@@ -52,10 +53,16 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Registers a new user with the provided details and returns a success message if successful")
-    public String register(@RequestBody Register registerRequest) {
+    public Map<String, String> register(@RequestBody Register registerRequest) {
             String passwordHash = passwordEncoder.encode(registerRequest.getUser().getPassword());
             registerRequest.getUser().setPassword(passwordHash);
             userInteractor.registerUser(registerRequest);
-            return "User registered successfully";
+            return Map.of("message", "User registered successfully");
+    }
+
+    @GetMapping("/get-user")
+    @Operation(summary = "Get the currently logged-in user", description = "Returns the details of the currently logged-in user")
+    public UserProfileOutput getProfile() {
+        return userInteractor.getProfile();
     }
 }

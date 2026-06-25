@@ -72,4 +72,21 @@ public class Job {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+
+    public Job update(Job job){
+        if(job.getTitle() != null && !job.getTitle().isEmpty()){
+            this.title = job.getTitle();
+        }
+        if(job.getDescription() != null && !job.getDescription().isEmpty()){
+            this.description = job.getDescription();
+        }
+        if(job.getRequirements() != null && !job.getRequirements().isEmpty()){
+            this.requirements = job.getRequirements();
+        }
+        if(job.getSkills() != null && !job.getSkills().isEmpty()){
+            this.skills = job.getSkills();
+        }
+        return this;
+    }
 }

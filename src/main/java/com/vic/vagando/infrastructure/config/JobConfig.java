@@ -1,7 +1,9 @@
 package com.vic.vagando.infrastructure.config;
 
 import com.vic.vagando.app.interactor.JobInteractor;
+import com.vic.vagando.infrastructure.adapter.ApplicationsAdapter;
 import com.vic.vagando.infrastructure.adapter.JobAdapter;
+import com.vic.vagando.infrastructure.adapter.SkillsAdapter;
 import com.vic.vagando.infrastructure.persistence.job.JobRepository;
 import com.vic.vagando.infrastructure.persistence.job.JobSkillsRepository;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +17,7 @@ public class JobConfig {
     }
 
     @Bean
-    public JobInteractor jobInteractor(JobAdapter jobAdapter) {
-        return new JobInteractor(jobAdapter);
+    public JobInteractor jobInteractor(JobAdapter jobAdapter, ApplicationsAdapter  applicationsAdapter, SkillsAdapter skillsAdapter) {
+        return new JobInteractor(jobAdapter, applicationsAdapter, skillsAdapter);
     }
 }

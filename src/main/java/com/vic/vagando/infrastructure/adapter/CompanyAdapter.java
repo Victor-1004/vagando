@@ -23,4 +23,9 @@ public class CompanyAdapter implements CompanyGateway {
     public Optional<Company> findByUserEmail(String email) {
         return companyRepository.findByUserEmail(email).map(CompanyMapper::toDomain);
     }
+
+    @Override
+    public Optional<Company> findByCNPJ(String cnpj) {
+        return companyRepository.findByCNPJ(cnpj).map(CompanyMapper::toDomain);
+    }
 }

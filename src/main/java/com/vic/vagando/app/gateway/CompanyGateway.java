@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface CompanyGateway {
     Company save(Company company);
     Optional<Company> findByUserEmail(String email);
+    Optional<Company> findByCNPJ(String cnpj);
 }

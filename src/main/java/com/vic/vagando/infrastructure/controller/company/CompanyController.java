@@ -3,12 +3,14 @@ package com.vic.vagando.infrastructure.controller.company;
 import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.applications.ApplicationStatus;
 import com.vic.vagando.app.domain.company.Company;
+import com.vic.vagando.app.domain.filter.ApplicationsCompanyFilter;
 import com.vic.vagando.app.domain.job.input.CompanyJobInput;
 import com.vic.vagando.app.domain.company.input.UpdateCompanyInput;
 import com.vic.vagando.app.domain.job.output.JobOutput;
 import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
 import com.vic.vagando.app.interactor.ApplicationsInteractor;
 import com.vic.vagando.app.interactor.CompanyInteractor;
+import com.vic.vagando.app.interactor.JobInteractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +24,11 @@ import java.util.UUID;
 public class CompanyController {
     private final CompanyInteractor companyInteractor;
     private final ApplicationsInteractor applicationsInteractor;
-
-    public CompanyController(CompanyInteractor companyInteractor, ApplicationsInteractor applicationsInteractor) {
+    private final JobInteractor  jobInteractor;
+    public CompanyController(CompanyInteractor companyInteractor, ApplicationsInteractor applicationsInteractor, JobInteractor jobInteractor) {
         this.companyInteractor = companyInteractor;
         this.applicationsInteractor = applicationsInteractor;
+        this.jobInteractor = jobInteractor;
     }
 
     @PatchMapping("/update")
@@ -49,8 +52,8 @@ public class CompanyController {
 
     @PatchMapping("/job")
     @Operation(summary = "Update Job Posting", description = "Update an existing job posting based on the provided job ID and input.")
-    public JobOutput updateJob(@RequestParam(name="job", required = true) UUID jobId, @RequestBody CompanyJobInput input){
-        return null;
+    public JobOutput updateJob(@RequestBody CompanyJobInput input){
+        return jobInteractor.update(input);
     }
 
     @GetMapping("/{jobId}/applications")
@@ -65,5 +68,12 @@ public class CompanyController {
                                                              @PathVariable("applicationId") UUID applicationId,
                                                              @RequestParam("status") ApplicationStatus status){
         applicationsInteractor.updateApplicationStatus(applicationId, status);
+    }
+
+    @GetMapping("/applications")
+    public PageModel<ApplicationsCompanyOutput> getApplicationsToCompanyJobs(ApplicationsCompanyFilter filter,
+                                                                             @RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "10") int size){
+        return companyInteractor.getApplicationsToCompanyJobs(filter, page, size);
     }
 }

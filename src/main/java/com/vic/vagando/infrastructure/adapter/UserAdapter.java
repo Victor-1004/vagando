@@ -7,6 +7,7 @@ import com.vic.vagando.infrastructure.persistence.UserRepository;
 import jakarta.transaction.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class UserAdapter implements UserGateway {
     private final UserRepository userRepository;
@@ -24,5 +25,15 @@ public class UserAdapter implements UserGateway {
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email).map(UserMapper::toDomain);
+    }
+
+    @Override
+    public void deleteUserByEmail(String email) {
+        userRepository.deleteByEmail(email);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        userRepository.deleteById(id);
     }
 }

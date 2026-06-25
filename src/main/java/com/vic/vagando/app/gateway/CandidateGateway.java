@@ -11,4 +11,5 @@ public interface CandidateGateway {
     Optional<CandidateSkills> findBySkillId(UUID skillId);
     Optional<Candidate> findByUserEmail(String email);
     CandidateSkills saveCandidateSkills(CandidateSkills candidateSkills);
+    Optional<Candidate> findByCPF(String cpf);
 }

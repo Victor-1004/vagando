@@ -13,4 +13,7 @@ public interface CandidateRepository extends JpaRepository<CandidateEntity, UUID
             "LEFT JOIN FETCH c.skills cs LEFT JOIN FETCH cs.skill s " +
             "LEFT JOIN FETCH c.user u WHERE u.email = :email")
     Optional<CandidateEntity> findByUserEmail(String email);
+
+    @Query("SELECT c FROM CandidateEntity c WHERE c.cpf = :cpf")
+    Optional<CandidateEntity> findByCpf(String cpf);
 }

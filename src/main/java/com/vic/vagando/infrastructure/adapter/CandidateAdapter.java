@@ -38,4 +38,9 @@ public class CandidateAdapter implements CandidateGateway {
     public CandidateSkills saveCandidateSkills(CandidateSkills candidateSkills) {
         return CandidateMapper.toDomain(candidateSkillsRepository.save(CandidateMapper.toEntity(candidateSkills)));
     }
+
+    @Override
+    public Optional<Candidate> findByCPF(String cpf) {
+        return candidateRepository.findByCpf(cpf).map(CandidateMapper::toDomain);
+    }
 }
