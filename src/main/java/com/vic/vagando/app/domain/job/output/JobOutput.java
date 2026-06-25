@@ -13,6 +13,15 @@ public class JobOutput {
     private String description;
     private String requirements;
     private LocalDateTime createdAt;
+    private UUID jobId;
+
+    public UUID getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(UUID jobId) {
+        this.jobId = jobId;
+    }
 
     public JobCompanyOutput getCompany() {
         return company;
@@ -121,6 +130,7 @@ public class JobOutput {
             return skillOutput;
         }).collect(java.util.stream.Collectors.toSet());
         output.setSkills(skillOutputs);
+        output.setJobId(job.getId());
         return output;
     }
 }

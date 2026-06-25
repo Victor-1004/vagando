@@ -7,10 +7,11 @@ import com.vic.vagando.app.domain.Skills;
 import com.vic.vagando.app.domain.user.Register;
 import com.vic.vagando.app.domain.user.User;
 import com.vic.vagando.app.domain.user.UserRole;
+import com.vic.vagando.app.exception.BusinessException;
+import com.vic.vagando.app.exception.EntityNotFoundException;
 import com.vic.vagando.app.gateway.*;
 import com.vic.vagando.app.util.CNPJ;
 import com.vic.vagando.app.util.CPF;
-import jakarta.transaction.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,10 +33,9 @@ public class UserInteractor {
         this.appGateway = appGateway;
     }
 
-    @Transactional
     public void registerUser(Register register) {
         if(userGateway.findByEmail(register.getUser().getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use");
+            throw new BusinessException("Email already in use");
         }
         User user = new User();
         user.setEmail(register.getUser().getEmail());
@@ -47,10 +47,10 @@ public class UserInteractor {
         }
 
         if(user.getRole() == null) {
-            throw new IllegalArgumentException("User role must be specified");
+            throw new BusinessException("User role must be specified");
         }
         if(register.getIdentificationNumber() == null || register.getIdentificationNumber().isEmpty()) {
-            throw new IllegalArgumentException("Identification number must be provided");
+            throw new BusinessException("Identification number must be provided");
         }
         User savedUser = userGateway.saveUser(user);
         if(user.getRole() == UserRole.CANDIDATE) {
@@ -68,17 +68,17 @@ public class UserInteractor {
             candidate.setUser(savedUser);
             candidate.setCreatedAt(appGateway.getCurrentDateTime());
             if(register.getSkills() == null || register.getSkills().isEmpty() || register.getSkills().size() < 3) {
-                throw new IllegalArgumentException("At least three skills must be provided for candidates");
+                throw new BusinessException("At least three skills must be provided for candidates");
             }
             Set<UUID> uniqueSkillIds = new HashSet<>(register.getSkills());
             if(uniqueSkillIds.size() < 3) {
-                throw new IllegalArgumentException("At least three unique skills must be provided for candidates");
+                throw new BusinessException("At least three unique skills must be provided for candidates");
             }
             Candidate savedCandidate = candidateGateway.saveCandidate(candidate);
 
             Set<CandidateSkills> skillsSet = new HashSet<>();
             for(UUID skillId : uniqueSkillIds) {
-                Skills skill = skillsGateway.findById(skillId).orElseThrow(() -> new IllegalArgumentException("Skill with ID " + skillId + " not found"));
+                Skills skill = skillsGateway.findById(skillId).orElseThrow(() -> new EntityNotFoundException("Skill with ID " + skillId + " not found"));
                 CandidateSkills candidateSkills = new CandidateSkills();
                 candidateSkills.setCandidate(savedCandidate);
                 candidateSkills.setSkill(skill);
@@ -104,9 +104,5 @@ public class UserInteractor {
             companyGateway.save(company);
         }
 
-    }
-
-    public User findUserByEmail(String email) {
-        return userGateway.findByEmail(email).orElse(null);
     }
 }

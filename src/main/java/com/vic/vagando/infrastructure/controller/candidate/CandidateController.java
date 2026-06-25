@@ -30,34 +30,19 @@ public class CandidateController {
         return  new CandidateOutput().toOutput(candidateInteractor.getCandidate());
     }
 
-
     @GetMapping("/applieds-jobs")
     public PageModel<JobOutput> findJobsAppliedByCandidateId(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
         return candidateInteractor.findJobsAppliedByCandidateId(page, size);
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<CandidateOutput> update(@RequestBody UpdateCandidateInput input){
-        try {
-            CandidateOutput updatedCandidate = candidateInteractor.update(input);
-            return ResponseEntity.ok(updatedCandidate);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).build();
-        }
+    public CandidateOutput update(@RequestBody UpdateCandidateInput input){
+        return candidateInteractor.update(input);
     }
 
     @PostMapping("/{jobId}/aplicar")
-    public ResponseEntity<?> aplicar(@PathVariable("jobId") UUID jobId){
-        try {
-            ApplicationsCompanyOutput applications = applicationsInteractor.aplicar(jobId);
-            return ResponseEntity.ok(applications);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body(Map.of(
-                    "message", e.getMessage()
-            ));
-        }
+    public ApplicationsCompanyOutput aplicar(@PathVariable("jobId") UUID jobId){
+        return applicationsInteractor.aplicar(jobId);
     }
-
-
 
 }

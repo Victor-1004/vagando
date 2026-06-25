@@ -4,6 +4,7 @@ import com.vic.vagando.app.domain.user.User;
 import com.vic.vagando.app.gateway.UserGateway;
 import com.vic.vagando.infrastructure.adapter.mapper.UserMapper;
 import com.vic.vagando.infrastructure.persistence.UserRepository;
+import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ public class UserAdapter implements UserGateway {
     }
 
     @Override
+    @Transactional
     public User saveUser(User user) {
         return UserMapper.toDomain(userRepository.save(UserMapper.toEntity(user)));
     }

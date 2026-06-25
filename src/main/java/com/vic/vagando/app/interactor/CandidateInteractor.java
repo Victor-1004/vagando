@@ -12,8 +12,6 @@ import com.vic.vagando.app.gateway.AppGateway;
 import com.vic.vagando.app.gateway.CandidateGateway;
 import com.vic.vagando.app.gateway.JobGateway;
 
-import java.util.List;
-
 public class CandidateInteractor{
     private final CandidateGateway candidateGateway;
     private final AppGateway appGateway;

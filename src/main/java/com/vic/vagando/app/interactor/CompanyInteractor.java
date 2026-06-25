@@ -8,11 +8,11 @@ import com.vic.vagando.app.domain.job.Job;
 import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.domain.job.output.JobOutput;
 import com.vic.vagando.app.exception.BusinessException;
+import com.vic.vagando.app.exception.EntityNotFoundException;
 import com.vic.vagando.app.gateway.AppGateway;
 import com.vic.vagando.app.gateway.CompanyGateway;
 import com.vic.vagando.app.gateway.JobGateway;
 import com.vic.vagando.app.gateway.SkillsGateway;
-import jakarta.transaction.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -33,14 +33,13 @@ public class CompanyInteractor {
 
     public Company update(UpdateCompanyInput input){
         if(input.getNome() == null && input.getDescricao() == null){
-            throw new IllegalArgumentException("At least one field must be provided for update");
+            throw new BusinessException("At least one field must be provided for update");
         }
         Company company = getCompany();
         company.update(input.toDomain());
         return companyGateway.save(company);
     }
 
-    @Transactional
     public JobOutput createJob(CompanyJobInput input){
         Company company = getCompany();
         Job job = input.toDomain();
@@ -51,7 +50,7 @@ public class CompanyInteractor {
             JobSkills jobSkills = new JobSkills();
             jobSkills.setJob(job);
             var skill = skillsGateway.findById(skillId)
-                    .orElseThrow(() -> new BusinessException("Skill with id " + skillId + " not found"));
+                    .orElseThrow(() -> new EntityNotFoundException("Skill with id " + skillId + " not found"));
             jobSkills.setSkill(skill);
             jobSkillsSet.add(jobSkills);
         }
@@ -69,8 +68,7 @@ public class CompanyInteractor {
 
     public Company getCompany(){
         String email = appGateway.getLoggedUserEmail();
-        return companyGateway.findByUserEmail(email).orElseThrow(() -> new RuntimeException("Company not found"));
+        return companyGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Company not found"));
     }
-
 
 }

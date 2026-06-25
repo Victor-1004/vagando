@@ -24,6 +24,7 @@ public class JobAdapter implements JobGateway {
     }
 
     @Override
+    @Transactional
     public Job createJob(Job job) {
         return JobMapper.toDomain(jobRepository.save(JobMapper.toEntity(job)));
     }
@@ -34,6 +35,7 @@ public class JobAdapter implements JobGateway {
     }
 
     @Override
+    @Transactional
     public JobSkills saveJobSkill(JobSkills jobSkills) {
         return JobMapper.toDomainSkillLink(jobSkillsRepository.save(JobMapper.toEntitySkillLink(jobSkills)));
     }

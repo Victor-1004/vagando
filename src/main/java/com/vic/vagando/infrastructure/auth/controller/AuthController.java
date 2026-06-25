@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -34,29 +35,20 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginRequest) {
-        try {
+    public Map<String, String> login(@RequestBody LoginDTO loginRequest) {
             var userEmailPassword = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
             var authentication = authenticationManager.authenticate(userEmailPassword);
-
             var token = tokenService.genToken((UserEntity) Objects.requireNonNull(authentication.getPrincipal()));
             HashMap<String, String> response = new HashMap<>();
             response.put("token", token);
-            return ResponseEntity.ok(response);
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body("Error logging in: " + e.getMessage());
-        }
+            return response;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Register registerRequest) {
-        try {
+    public String register(@RequestBody Register registerRequest) {
             String passwordHash = passwordEncoder.encode(registerRequest.getUser().getPassword());
             registerRequest.getUser().setPassword(passwordHash);
             userInteractor.registerUser(registerRequest);
-            return ResponseEntity.ok("User registered successfully");
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body("Error registering user: " + e.getMessage());
-        }
+            return "User registered successfully";
     }
 }

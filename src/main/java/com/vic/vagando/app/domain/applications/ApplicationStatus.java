@@ -1,9 +1,9 @@
 package com.vic.vagando.app.domain.applications;
 
 public enum ApplicationStatus {
-    PENDING("Pending"),
-    APPROVED("Approved"),
-    REJECTED("Rejected");
+    PENDING("Pendente"),
+    APPROVED("Aprovado"),
+    REJECTED("Rejeitado");
 
     private String description;
 
