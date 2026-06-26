@@ -3,10 +3,12 @@ package com.vic.vagando.infrastructure.controller.candidate;
 import com.vic.vagando.app.domain.PageModel;
 import com.vic.vagando.app.domain.candidate.input.UpdateCandidateInput;
 import com.vic.vagando.app.domain.job.output.JobOutput;
+import com.vic.vagando.app.domain.ouput.ApplicationsCandidateOutput;
 import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
 import com.vic.vagando.app.domain.ouput.CandidateOutput;
 import com.vic.vagando.app.interactor.ApplicationsInteractor;
 import com.vic.vagando.app.interactor.CandidateInteractor;
+import com.vic.vagando.app.interactor.JobInteractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +24,12 @@ import java.util.UUID;
 public class CandidateController {
     private final CandidateInteractor candidateInteractor;
     private final ApplicationsInteractor  applicationsInteractor;
+    private final JobInteractor  jobInteractor;
 
-    public CandidateController(CandidateInteractor candidateInteractor, ApplicationsInteractor applicationsInteractor) {
+    public CandidateController(CandidateInteractor candidateInteractor, ApplicationsInteractor applicationsInteractor, JobInteractor jobInteractor) {
         this.candidateInteractor = candidateInteractor;
         this.applicationsInteractor = applicationsInteractor;
+        this.jobInteractor = jobInteractor;
     }
 
     @GetMapping("/")
@@ -40,6 +44,13 @@ public class CandidateController {
         return candidateInteractor.findJobsAppliedByCandidateId(page, size);
     }
 
+    @GetMapping("/applications")
+    @Operation(summary = "Get Candidate Applications", description = "Retrieve a paginated list of applications made by the candidate.")
+    public PageModel<ApplicationsCandidateOutput> findApplicationsByCandidateId(@RequestParam(defaultValue
+    = "0") int page, @RequestParam(defaultValue = "10") int size){
+            return applicationsInteractor.findApplicationsByCandidateId(page, size);
+        }
+
     @PatchMapping("/update")
     @Operation(summary = "Update Candidate Information", description = "Update candidate information based on the provided input.")
     public CandidateOutput update(@RequestBody UpdateCandidateInput input){
@@ -48,8 +59,14 @@ public class CandidateController {
 
     @PostMapping("/{jobId}/aplicar")
     @Operation(summary = "Apply to a Job", description = "Allows the candidate to apply for a job based on the provided job ID.")
-    public ApplicationsCompanyOutput aplicar(@PathVariable("jobId") UUID jobId){
+    public ApplicationsCandidateOutput aplicar(@PathVariable("jobId") UUID jobId){
         return applicationsInteractor.aplicar(jobId);
     }
 
+
+    @GetMapping("/jobs")
+    @Operation(summary = "Get a paginated list of jobs", description = "Returns a paginated list of jobs with the specified page number and size")
+    public PageModel<JobOutput> getCandidateJobs(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, @RequestParam(required = false) String title){
+        return jobInteractor.findCandidateJobs(page, size, title);
+    }
 }

@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface CompanyRepository extends JpaRepository<CompanyEntity, UUID> {
     Optional<CompanyEntity> findByUserEmail(String email);
 
-    @Query("SELECT c FROM CompanyEntity c WHERE c.cnpj = :cnpj")
+    @Query("SELECT c FROM CompanyEntity c WHERE c.cnpj = :cnpj ORDER BY c.createdAt DESC")
     Optional<CompanyEntity> findByCNPJ(String cnpj);
 
 

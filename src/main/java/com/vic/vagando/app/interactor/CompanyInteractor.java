@@ -10,6 +10,7 @@ import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.domain.job.output.JobOutput;
 import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
 import com.vic.vagando.app.domain.ouput.CandidateOutput;
+import com.vic.vagando.app.domain.ouput.Dashboard;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
 import com.vic.vagando.app.gateway.*;
@@ -40,7 +41,8 @@ public class CompanyInteractor {
             throw new BusinessException("At least one field must be provided for update");
         }
         Company company = getCompany();
-        company.update(input.toDomain());
+        company.setName(input.getNome() != null ? input.getNome() : company.getName());
+        company.setDescription(input.getDescricao() != null ? input.getDescricao() : company.getDescription());
         return companyGateway.save(company);
     }
 
@@ -49,6 +51,7 @@ public class CompanyInteractor {
         Job job = input.toDomain();
         job.setCompany(company);
         job.setCreatedAt(appGateway.getCurrentDateTime());
+        job.setActive(true);
         Set<JobSkills> jobSkillsSet = new HashSet<>();
         for(UUID skillId : input.getSkills()){
             JobSkills jobSkills = new JobSkills();
@@ -64,9 +67,9 @@ public class CompanyInteractor {
         return output.fromDomain(savedJob);
     }
 
-    public PageModel<JobOutput> getJobs(int page, int size){
+    public PageModel<JobOutput> getJobs(int page, int size, String title){
         Company company = getCompany();
-        PageModel<Job> jobs = jobGateway.getCompanyJobs(company.getId(), page, size);
+        PageModel<Job> jobs = jobGateway.getCompanyJobs(company.getId(), page, size, title);
         return jobs.map(job -> new JobOutput().fromDomain(job));
     }
 
@@ -100,8 +103,40 @@ public class CompanyInteractor {
                     candidateOutput.setName(applications.getCandidate().getName());
                     candidateOutput.setResumeUrl(applications.getCandidate().getResumeUrl());
                     candidateOutput.setEmail(applications.getCandidate().getUser().getEmail());
+                    candidateOutput.setCpf(applications.getCandidate().getCpf());
+                    candidateOutput.setSkills(applications.getCandidate().getSkills().stream().map(cs -> {
+                        CandidateOutput.CandidateSkillsOutput skillOutput = new CandidateOutput.CandidateSkillsOutput();
+                        skillOutput.setId(cs.getSkill().getId());
+                        skillOutput.setName(cs.getSkill().getName());
+                        return skillOutput;
+                    }).toList());
                     output.setCandidate(candidateOutput);
                     return output;
                 });
+    }
+
+    public Dashboard dashboard() {
+        Company company = getCompany();
+        Dashboard dashboard = new Dashboard();
+        Dashboard.CardInfo cardInfo = new Dashboard.CardInfo();
+        int vagasAtivas = jobGateway.getCompanyJobsActiveCount(company.getId());
+        int vagasFinalizadas = jobGateway.getCompanyJobsCompletedCount(company.getId());
+        int totalCandidaturas = applicationsGateway.countApplicationsByCompanyId(company.getId());
+        int candidaturasPendentes = applicationsGateway.countPendingApplicationsByCompanyId(company.getId());
+        int candidaturasAprovadas = applicationsGateway.countAprovedApplicationsByCompanyId(company.getId());
+        int candidaturasUltimas24h = applicationsGateway.countApplicationsLastDayByCompanyId(company.getId());
+        cardInfo.setVagasAtivas(vagasAtivas);
+        cardInfo.setCandidaturasTotais(totalCandidaturas);
+        cardInfo.setCandidaturasPendentes(candidaturasPendentes);
+        cardInfo.setCandidaturasAprovadas(candidaturasAprovadas);
+        cardInfo.setCandidaturasTotalUltimoDia(candidaturasUltimas24h);
+        dashboard.setCardInfo(cardInfo);
+        List<ApplicationsCompanyOutput> candidaturasRecentes = applicationsGateway.listByCompanyId(company.getId()).stream().map(a -> {
+            return new ApplicationsCompanyOutput().toOutput(a);
+        }).toList();
+        dashboard.setCandidaturasRecentes(candidaturasRecentes);
+        List<JobOutput> vagasEmDestaque = jobGateway.listJobsWithMoreApplications(company.getId()).stream().map(j -> new JobOutput().fromDomain(j)).toList();
+        dashboard.setVagasEmDestaque(vagasEmDestaque);
+        return dashboard;
     }
 }

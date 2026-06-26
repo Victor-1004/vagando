@@ -46,4 +46,6 @@ public class JobEntity {
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ApplicationsEntity> applications = new HashSet<>();
+
+    private Boolean active;
 }

@@ -10,7 +10,9 @@ import com.vic.vagando.infrastructure.persistence.job.JobRepository;
 import com.vic.vagando.infrastructure.persistence.job.JobSkillsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,8 +44,8 @@ public class JobAdapter implements JobGateway {
 
     @Override
     @Transactional
-    public PageModel<Job> getCompanyJobs(UUID companyId, int page, int size) {
-        return PageRepositoryMapper.toDomain(jobRepository.findByCompanyId(companyId, PageRequest.of(page, size)).map(JobMapper::toDomain));
+    public PageModel<Job> getCompanyJobs(UUID companyId, int page, int size, String title) {
+        return PageRepositoryMapper.toDomain(jobRepository.findByCompanyId(companyId, title, PageRequest.of(page, size)).map(JobMapper::toDomain));
     }
 
     @Override
@@ -57,6 +59,11 @@ public class JobAdapter implements JobGateway {
     }
 
     @Override
+    public PageModel<Job> findJobs(int page, int size, String title) {
+        return PageRepositoryMapper.toDomain(jobRepository.find(title, PageRequest.of(page, size)).map(JobMapper::toDomain));
+    }
+
+    @Override
     public Optional<Job> findById(UUID id) {
         return jobRepository.findByIdFetchingSkills(id).map(JobMapper::toDomain);
     }
@@ -65,4 +72,21 @@ public class JobAdapter implements JobGateway {
     public PageModel<Job> findJobsAppliedByCandidateId(UUID candidateId, int page, int size) {
         return PageRepositoryMapper.toDomain(jobRepository.findJobsAppliedByCandidateId(candidateId, PageRequest.of(page, size)).map(JobMapper::toDomain));
     }
+
+    @Override
+    public int getCompanyJobsActiveCount(UUID candidateId) {
+        return jobRepository.getCompanyJobsActiveCount(candidateId);
+    }
+
+    @Override
+    public int getCompanyJobsCompletedCount(UUID candidateId) {
+        return jobRepository.getCompanyJobsCompletedCount(candidateId);
+    }
+
+    @Override
+    public List<Job> listJobsWithMoreApplications(UUID companyId) {
+        Pageable pageable = PageRequest.of(0, 4);
+       return jobRepository.findTopJobsByApplications(companyId, pageable).stream().map(JobMapper::toDomain).toList();
+    }
+
 }

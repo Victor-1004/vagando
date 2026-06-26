@@ -18,6 +18,7 @@ public class JobMapper {
         job.setDescription(entity.getDescription());
         job.setRequirements(entity.getRequirements());
         job.setCreatedAt(entity.getCreatedAt());
+        job.setActive(entity.getActive());
         return job;
     }
     public static JobEntity toEntityWithoutSkillsAndCompany(Job job) {
@@ -30,6 +31,7 @@ public class JobMapper {
         entity.setDescription(job.getDescription());
         entity.setRequirements(job.getRequirements());
         entity.setCreatedAt(job.getCreatedAt());
+        entity.setActive(job.getActive());
         return entity;
     }
     public static Job toDomain(JobEntity entity) {

@@ -14,6 +14,15 @@ public class JobOutput {
     private String requirements;
     private LocalDateTime createdAt;
     private UUID jobId;
+    private Boolean candidateApplied;
+
+    public Boolean getCandidateApplied() {
+        return candidateApplied;
+    }
+
+    public void setCandidateApplied(Boolean candidateApplied) {
+        this.candidateApplied = candidateApplied;
+    }
 
     public UUID getJobId() {
         return jobId;
@@ -131,6 +140,28 @@ public class JobOutput {
         }).collect(java.util.stream.Collectors.toSet());
         output.setSkills(skillOutputs);
         output.setJobId(job.getId());
+        return output;
+    }
+
+    public JobOutput fromDomain(Job job, Boolean candidateApplied){
+        JobOutput output = new JobOutput();
+        output.setTitle(job.getTitle());
+        output.setDescription(job.getDescription());
+        output.setRequirements(job.getRequirements());
+        output.setCreatedAt(job.getCreatedAt());
+        JobCompanyOutput companyOutput = new JobCompanyOutput();
+        companyOutput.setName(job.getCompany().getName());
+        companyOutput.setDescription(job.getCompany().getDescription());
+        output.setCompany(companyOutput);
+        Set<JobSkillOutput> skillOutputs = job.getSkills().stream().map(js -> {
+            JobSkillOutput skillOutput = new JobSkillOutput();
+            skillOutput.setId(js.getSkill().getId());
+            skillOutput.setName(js.getSkill().getName());
+            return skillOutput;
+        }).collect(java.util.stream.Collectors.toSet());
+        output.setSkills(skillOutputs);
+        output.setJobId(job.getId());
+        output.setCandidateApplied(candidateApplied);
         return output;
     }
 }

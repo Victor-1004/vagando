@@ -16,6 +16,15 @@ public class Job {
     private String requirements;
     private LocalDateTime createdAt;
     private Set<JobSkills> skills = new HashSet<>();
+    private Boolean active;
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
 
     public Set<JobSkills> getSkills() {
         return skills;

@@ -36,6 +36,6 @@ public class CompanyEntity {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "company", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<JobEntity> jobs;
 }

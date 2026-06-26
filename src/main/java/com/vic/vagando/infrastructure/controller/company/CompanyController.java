@@ -8,6 +8,7 @@ import com.vic.vagando.app.domain.job.input.CompanyJobInput;
 import com.vic.vagando.app.domain.company.input.UpdateCompanyInput;
 import com.vic.vagando.app.domain.job.output.JobOutput;
 import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
+import com.vic.vagando.app.domain.ouput.Dashboard;
 import com.vic.vagando.app.interactor.ApplicationsInteractor;
 import com.vic.vagando.app.interactor.CompanyInteractor;
 import com.vic.vagando.app.interactor.JobInteractor;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RequestMapping("/company")
@@ -46,8 +48,9 @@ public class CompanyController {
     @GetMapping("/job")
     @Operation(summary = "Get Jobs", description = "Retrieve a paginated list of jobs posted by the company.")
     public PageModel<JobOutput> getJobs(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size){
-        return companyInteractor.getJobs(page, size);
+                                        @RequestParam(defaultValue = "10") int size,
+                                        @RequestParam(required = false) String title){
+        return companyInteractor.getJobs(page, size, title);
     }
 
     @PatchMapping("/job")
@@ -64,10 +67,11 @@ public class CompanyController {
 
     @PatchMapping("/{jobId}/applications/{applicationId}")
     @Operation(summary = "Update Application Status", description = "Update the status of a specific application for a job posting based on the provided job ID, application ID, and new status.")
-    public void updateApplicationStatus(@PathVariable("jobId") UUID jobId,
-                                                             @PathVariable("applicationId") UUID applicationId,
-                                                             @RequestParam("status") ApplicationStatus status){
+    public Map<String, String> updateApplicationStatus(@PathVariable("jobId") UUID jobId,
+                                                       @PathVariable("applicationId") UUID applicationId,
+                                                       @RequestParam("status") ApplicationStatus status){
         applicationsInteractor.updateApplicationStatus(applicationId, status);
+        return Map.of("message", "Application Status Updated");
     }
 
     @GetMapping("/applications")
@@ -76,4 +80,10 @@ public class CompanyController {
                                                                              @RequestParam(defaultValue = "10") int size){
         return companyInteractor.getApplicationsToCompanyJobs(filter, page, size);
     }
+
+    @GetMapping("/dashboard")
+    public Dashboard dashboard(){
+        return companyInteractor.dashboard();
+    }
+
 }
