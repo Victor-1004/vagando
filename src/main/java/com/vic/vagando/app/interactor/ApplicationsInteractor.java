@@ -12,6 +12,7 @@ import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.domain.ouput.ApplicationsCandidateOutput;
 import com.vic.vagando.app.domain.ouput.ApplicationsCompanyOutput;
 import com.vic.vagando.app.exception.EntityNotFoundException;
+import com.vic.vagando.app.exception.ProfileException;
 import com.vic.vagando.app.gateway.*;
 
 import java.math.BigDecimal;
@@ -57,12 +58,12 @@ public class ApplicationsInteractor {
 
     public Candidate getCandidate(){
         String email = appGateway.getLoggedUserEmail();
-        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new ProfileException("Candidate not found"));
     }
 
     public Company getCompany(){
         String email = appGateway.getLoggedUserEmail();
-        return companyGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Company not found"));
+        return companyGateway.findByUserEmail(email).orElseThrow(() -> new ProfileException("Company not found"));
     }
 
 

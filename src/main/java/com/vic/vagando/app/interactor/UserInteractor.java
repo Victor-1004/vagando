@@ -10,6 +10,7 @@ import com.vic.vagando.app.domain.user.User;
 import com.vic.vagando.app.domain.user.UserRole;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
+import com.vic.vagando.app.exception.ProfileException;
 import com.vic.vagando.app.gateway.*;
 import com.vic.vagando.app.util.CNPJ;
 import com.vic.vagando.app.util.CPF;
@@ -126,14 +127,14 @@ public class UserInteractor {
         profile.setId(user.getId());
         profile.setEmail(user.getEmail());
         if(user.getRole() == UserRole.COMPANY) {
-             Company company = companyGateway.findByUserEmail(user.getEmail()).orElseThrow(() -> new EntityNotFoundException("Company not found"));
+             Company company = companyGateway.findByUserEmail(user.getEmail()).orElseThrow(() -> new ProfileException("Company not found"));
                 profile.setName(company.getName());
                 profile.setDescription(company.getDescription());
                 profile.setCnpj(company.getCnpj());
                 profile.setRole(UserRole.COMPANY);
         }
         if(user.getRole() == UserRole.CANDIDATE) {
-            Candidate candidate = candidateGateway.findByUserEmail(user.getEmail()).orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+            Candidate candidate = candidateGateway.findByUserEmail(user.getEmail()).orElseThrow(() -> new ProfileException("Candidate not found"));
                 profile.setName(candidate.getName());
                 profile.setDescription(candidate.getDescription());
                 profile.setCpf(candidate.getCpf());

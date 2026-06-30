@@ -9,6 +9,7 @@ import com.vic.vagando.app.domain.job.Job;
 import com.vic.vagando.app.domain.job.JobSkills;
 import com.vic.vagando.app.domain.job.input.CompanyJobInput;
 import com.vic.vagando.app.domain.job.output.JobOutput;
+import com.vic.vagando.app.exception.ProfileException;
 import com.vic.vagando.app.gateway.*;
 import com.vic.vagando.app.util.CalculateScore;
 
@@ -30,13 +31,18 @@ public class JobInteractor {
         this.appGateway = appGateway;
     }
 
-    public PageModel<JobOutput> findCandidateJobs(int page, int size, String title){
-        Candidate candidate = getCandidate();
+    public PageModel<JobOutput> findCandidateJobs(int page, int size, String title, String token){
+        Candidate candidate;
+        if(token != null && !token.isEmpty()){
+            candidate = getCandidate();
+        } else {
+            candidate = null;
+        }
         if(title != null && title.isEmpty()){
             title = null;
         }
         return jobGateway.findJobs(page, size, title).map(j -> {
-            Boolean applied = applicationsGateway.existsByJobAndCandidateId(j.getId(), candidate.getId());
+            Boolean applied = candidate != null && applicationsGateway.existsByJobAndCandidateId(j.getId(), candidate.getId());
             return new JobOutput().fromDomain(j, applied);
         });
     }
@@ -72,6 +78,6 @@ public class JobInteractor {
 
     public Candidate getCandidate(){
         String email = appGateway.getLoggedUserEmail();
-        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new RuntimeException("Candidate not found"));
+        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new ProfileException("Candidate not found"));
     }
 }

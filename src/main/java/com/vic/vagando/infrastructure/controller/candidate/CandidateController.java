@@ -66,7 +66,9 @@ public class CandidateController {
 
     @GetMapping("/jobs")
     @Operation(summary = "Get a paginated list of jobs", description = "Returns a paginated list of jobs with the specified page number and size")
-    public PageModel<JobOutput> getCandidateJobs(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, @RequestParam(required = false) String title){
-        return jobInteractor.findCandidateJobs(page, size, title);
+    public PageModel<JobOutput> getCandidateJobs(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, @RequestParam(required = false) String title, @RequestHeader(name = "Authorization", defaultValue = "") String token){
+        if(token.isEmpty())
+            token = null;
+        return jobInteractor.findCandidateJobs(page, size, title, token);
     }
 }

@@ -11,6 +11,7 @@ import com.vic.vagando.app.domain.ouput.ApplicationsCandidateOutput;
 import com.vic.vagando.app.domain.ouput.CandidateOutput;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
+import com.vic.vagando.app.exception.ProfileException;
 import com.vic.vagando.app.gateway.AppGateway;
 import com.vic.vagando.app.gateway.CandidateGateway;
 import com.vic.vagando.app.gateway.JobGateway;
@@ -54,7 +55,7 @@ public class CandidateInteractor{
 
     public Candidate getCandidate(){
         String email = appGateway.getLoggedUserEmail();
-        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new EntityNotFoundException("Candidate not found"));
+        return candidateGateway.findByUserEmail(email).orElseThrow(() -> new ProfileException("Candidate not found"));
     }
 
     public PageModel<JobOutput> findJobsAppliedByCandidateId(int page, int size){

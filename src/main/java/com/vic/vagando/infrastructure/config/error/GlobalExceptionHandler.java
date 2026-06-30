@@ -3,6 +3,7 @@ package com.vic.vagando.infrastructure.config.error;
 import com.vic.vagando.app.domain.ouput.ErrorResponse;
 import com.vic.vagando.app.exception.BusinessException;
 import com.vic.vagando.app.exception.EntityNotFoundException;
+import com.vic.vagando.app.exception.ProfileException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -52,6 +53,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         ErrorResponse error = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+    @ExceptionHandler(ProfileException.class)
+    public ResponseEntity<ErrorResponse> handleProfileException(ProfileException ex) {
+        ErrorResponse error = new ErrorResponse(403, ex.getMessage());
+        return ResponseEntity.status(403).body(error);
     }
 
 }
