@@ -1,133 +1,211 @@
-# Vagando
+<div align="center">
 
-Vagando is a Spring Boot REST API for a job marketplace.
-It supports user registration and login with JWT, company and candidate profiles, and company job management.
+# 🧭 Vagando — API
 
-## Tech stack
+**Plataforma de vagas e candidaturas** — o backend REST do sistema Vagando.
 
-- Java 25
-- Spring Boot 4
-- Spring Web MVC
-- Spring Security
-- Spring Data JPA
-- Flyway
-- PostgreSQL
-- Lombok
-- SpringDoc OpenAPI
-- java-jwt
+Cadastro de empresas e candidatos, publicação de vagas, candidaturas com
+**match automático por skills** e autenticação via JWT.
 
-## Main features
+![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F?logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Flyway-4169E1?logo=postgresql&logoColor=white)
+![Security](https://img.shields.io/badge/Auth-JWT%20%2F%20BCrypt-000000?logo=jsonwebtokens&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/Docs-Swagger%20UI-85EA2D?logo=swagger&logoColor=black)
 
-- User registration and login
-- JWT-based authentication
-- Candidate profile update
-- Company profile update
-- Company job creation and listing
-- Health check endpoint
+</div>
 
-## Authentication
+---
 
-The API uses JWT.
+## ✨ O que ele faz
 
-- Login endpoint: `POST /auth/login`
-- Register endpoint: `POST /auth/register`
-- Protected endpoints expect the header:
+- 🔐 **Registro e login** de usuários (candidato ou empresa) com senha em BCrypt e sessão *stateless* via JWT
+- 👤 **Perfis** de candidato (CPF, currículo, skills) e empresa (CNPJ, descrição)
+- 📢 **Vagas** — empresas criam, editam, listam e ativam/desativam vagas com requisitos e skills
+- 📝 **Candidaturas** — candidatos se aplicam a vagas (uma por vaga) e acompanham o status
+- 🎯 **Match por skills** — cada candidatura recebe um *score* (0–100) calculado pela % de skills da vaga que o candidato possui
+- 📊 **Dashboard** da empresa — vagas ativas, totais de candidaturas e distribuição por status
+- 🩺 **Health check** e **documentação OpenAPI** prontos para uso
+
+## 🧱 Stack
+
+| Camada | Tecnologia |
+| --- | --- |
+| Linguagem | **Java 25** |
+| Framework | **Spring Boot 4.0** (Web MVC, Data JPA, Security) |
+| Auth | **java-jwt (Auth0)** + BCrypt |
+| Banco | **PostgreSQL** + **Flyway** (migrations) |
+| Docs | **SpringDoc OpenAPI** (Swagger UI) |
+| Utilitários | **Lombok** |
+| Testes | Spring Boot Test, Spring Security Test |
+
+## 🏛️ Arquitetura
+
+O projeto segue **Clean Architecture**: o domínio não conhece o mundo externo.
+A infraestrutura implementa os *gateways* do domínio via *adapters* + *mappers*.
+
+```
+        HTTP  ─────────────►  Controllers        (infrastructure/controller)
+                                    │
+                                    ▼
+                              Interactors         (app/interactor)      ← regras de negócio
+                                    │  usa
+                                    ▼
+                               Gateways           (app/gateway)         ← interfaces (portas)
+                                    ▲  implementa
+                                    │
+                               Adapters           (infrastructure/adapter)
+                                    │  Mappers ↔ Entities ↔ Repositories (Spring Data JPA)
+                                    ▼
+                              PostgreSQL
+```
+
+Cada `interactor` é ligado ao seu `adapter` por um `@Configuration` em
+`infrastructure/config`, mantendo o domínio livre de dependências do Spring.
+
+### Estrutura de pastas
+
+```
+src/main/java/com/vic/vagando
+├── app/                      # núcleo independente de framework
+│   ├── domain/               # entidades de domínio, inputs, outputs, filtros
+│   ├── gateway/              # portas (interfaces)
+│   ├── interactor/           # casos de uso / regras de negócio
+│   ├── exception/            # exceções de negócio
+│   └── util/                 # CPF, CNPJ, CalculateScore
+└── infrastructure/           # detalhes técnicos
+    ├── controller/           # endpoints REST
+    ├── auth/                 # login, registro, TokenService
+    ├── adapter/ + mapper/    # implementação dos gateways + conversões
+    ├── entity/               # entidades JPA
+    ├── persistence/          # repositórios Spring Data
+    └── config/               # wiring, security, error handler
+src/main/resources/db/migration  # migrations Flyway (V1 tabelas, V2 skills, V3 coluna active)
+```
+
+## 🔌 Endpoints
+
+> Base URL local: `http://localhost:8080`
+
+### 🌐 Públicos (sem token)
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/health` | Health check (retorna `OK`) |
+| `POST` | `/auth/register` | Registra um usuário (candidato ou empresa) |
+| `POST` | `/auth/login` | Autentica e retorna `{ token, role }` |
+| `GET` | `/skills` | Lista paginada de skills disponíveis |
+| `GET` | `/candidate/jobs` | Vitrine pública de vagas (auth opcional: marca `candidateApplied`) |
+
+### 🔒 Autenticados
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/auth/get-user` | Perfil do usuário logado |
+| **Candidato** | | |
+| `GET` | `/candidate/` | Dados do candidato logado |
+| `PATCH` | `/candidate/update` | Atualiza perfil do candidato |
+| `POST` | `/candidate/{jobId}/aplicar` | Candidata-se a uma vaga (calcula o *score*) |
+| `GET` | `/candidate/applications` | Candidaturas do candidato (paginado) |
+| `GET` | `/candidate/applieds-jobs` | Vagas às quais o candidato se aplicou |
+| **Empresa** | | |
+| `PATCH` | `/company/update` | Atualiza perfil da empresa |
+| `POST` | `/company/job` | Cria uma vaga |
+| `PATCH` | `/company/job` | Edita uma vaga |
+| `GET` | `/company/job` | Lista as vagas da empresa (filtro por `title`) |
+| `GET` | `/company/{jobId}/applications` | Candidaturas de uma vaga |
+| `PATCH`| `/company/{jobId}/applications/{applicationId}?status=` | Aprova/rejeita uma candidatura |
+| `GET` | `/company/applications` | Todas as candidaturas às vagas da empresa (com filtro) |
+| `GET` | `/company/dashboard` | Métricas do painel da empresa |
+| **Geral** | | |
+| `GET` | `/applications/status` | Lista os status possíveis de candidatura |
+
+📖 Documentação interativa: **Swagger UI** em `/swagger-ui/index.html` · OpenAPI em `/v3/api-docs`.
+
+## 🔐 Autenticação
+
+Fluxo *stateless* baseado em JWT:
+
+1. `POST /auth/register` cria o usuário (senha salva com BCrypt).
+2. `POST /auth/login` valida as credenciais e devolve `{ token, role }`.
+3. Endpoints protegidos exigem o header de autorização:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-## API endpoints
+> O `SecurityFilter` aceita o token **com ou sem** o prefixo `Bearer `.
 
-### Public
+## 🗄️ Banco de dados
 
-- `GET /health` - health check
-- `POST /auth/register` - register a candidate or company user
-- `POST /auth/login` - authenticate and receive a JWT
+PostgreSQL com migrations gerenciadas pelo **Flyway**. Tabelas principais:
 
-### Protected
+| Tabela | Papel |
+| --- | --- |
+| `users` | Credenciais e `role` (`CANDIDATE` / `COMPANY` / `ADMIN`) |
+| `candidates` / `companies` | Perfis (1:1 com `users`) |
+| `skills` | Catálogo de competências (semeado na V2) |
+| `candidate_skills` / `job_skills` | Skills do candidato e da vaga (N:N) |
+| `jobs` | Vagas (com coluna `active` para abrir/fechar) |
+| `applications` | Candidaturas com `status` e `score` (única por candidato+vaga) |
 
-- `PATCH /candidate/update` - update the logged candidate profile
-- `PATCH /company` - update the logged company profile
-- `POST /company/job` - create a job for the logged company
-- `GET /company/job` - list jobs for the logged company
+## ⚙️ Configuração
 
-## Project structure
+O perfil ativo padrão é **`development`** (usado quando `SPRING_PROFILES_ACTIVE` não está definido).
 
-- `src/main/java/com/vic/vagando/app` - domain, gateways, interactors
-- `src/main/java/com/vic/vagando/infrastructure` - controllers, security, persistence, mappers, entities
-- `src/main/resources/db/migration` - Flyway migrations
-
-## Database
-
-The project uses PostgreSQL and Flyway migrations.
-
-Main tables created by migration:
-
-- `users`
-- `skills`
-- `candidates`
-- `candidate_skills`
-- `companies`
-- `jobs`
-- `job_skills`
-- `applications`
-
-## Configuration
-
-### Development profile
-
-The `development` profile uses a local PostgreSQL database:
+**Perfil `development`** (`application-development.yaml`) — Postgres local:
 
 - URL: `jdbc:postgresql://localhost:5432/vagando`
-- Username: `admin`
-- Password: `123`
+- Usuário: `admin` · Senha: `123`
 - JWT secret: `mysecretkey`
 
-### Default profile
+**Perfil padrão** (`application.yaml`) — espera variáveis de ambiente:
 
-`application.yaml` expects environment variables:
+| Variável | Descrição |
+| --- | --- |
+| `DATABASE_URL` | URL JDBC do Postgres |
+| `DATABASE_USERNAME` | Usuário do banco |
+| `DATABASE_PASSWORD` | Senha do banco |
+| `JWT_SECRET` | Segredo de assinatura do JWT |
 
-- `DATABASE_URL`
-- `DATABASE_USERNAME`
-- `DATABASE_PASSWORD`
-- `JWT_SECRET`
+## ▶️ Rodando localmente (Windows)
 
-The active profile defaults to `development` when `SPRING_PROFILES_ACTIVE` is not set.
+**1. Suba o PostgreSQL** e garanta que o banco `vagando` existe.
 
-## Run locally on Windows
-
-### 1. Start PostgreSQL
-
-Make sure PostgreSQL is running and a database named `vagando` exists.
-
-### 2. Run the application
+**2. Rode a aplicação:**
 
 ```powershell
-.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=development
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=development"
 ```
 
-Or with an environment variable:
+ou via variável de ambiente:
 
 ```powershell
 $env:SPRING_PROFILES_ACTIVE='development'; .\mvnw.cmd spring-boot:run
 ```
 
-### 3. Access the API
+**3. Acesse:**
 
-- API: `http://localhost:8080`
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI docs: `http://localhost:8080/v3/api-docs`
+- API → `http://localhost:8080`
+- Swagger UI → `http://localhost:8080/swagger-ui/index.html`
 
-## Example flow
+## 🧪 Testes
 
-1. Register a user with `POST /auth/register`
-2. Login with `POST /auth/login`
-3. Copy the returned token
-4. Call protected endpoints with `Authorization: Bearer <token>`
+```powershell
+.\mvnw.cmd test
+```
 
-## Notes
+Cobrem os *interactors* de usuário e empresa (`app/*Test.java`), com *factories* de teste em `test/.../util`.
 
-- The project uses DTOs, interactors, gateways, and mappers to keep the domain layer independent from persistence.
-- Some entity relationships are bidirectional, so `toString`, `equals`, and `hashCode` must avoid recursive fields.
+## 🚀 Fluxo de exemplo
 
+1. `POST /auth/register` → cria candidato ou empresa
+2. `POST /auth/login` → copie o `token`
+3. Chame os endpoints protegidos com `Authorization: Bearer <token>`
+4. Empresa publica uma vaga → candidato se aplica → *score* é calculado automaticamente
+
+## 📝 Notas
+
+- DTOs, interactors, gateways e mappers mantêm o domínio independente da persistência.
+- Relacionamentos bidirecionais evitam `toString`/`equals`/`hashCode` recursivos.
+- O frontend (Next.js) vive no repositório **`sistema-vagas-next`** e consome esta API.
